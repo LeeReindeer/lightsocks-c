@@ -25,7 +25,6 @@
 #endif
 
 typedef struct {
-  // SecureSocket *ss;
   bufferevent *remote_bev;
   bufferevent *local_bev;
 } Client;
@@ -45,52 +44,20 @@ void remote_readcb(bufferevent *remote_bev, void *arg) {
   bufferevent *local_bev = client->local_bev;
   // read data from remote, decode then write to local.
   check(decode_copy(ss, local_bev, remote_bev) != -1, "close all connection");
-
-  // byte buf[BUFFER_SIZE] = {0};
-  // int n = bufferevent_read(remote_bev, buf, BUFFER_SIZE);
-  // check(n > 0, "no more data");
-  // decode_data(buf, n, ss->password);
-  // n = bufferevent_write(local_bev, buf, n);
-  // check(n > 0, "no more data");
-
-  // struct evbuffer *src, *dst;
-  // src = bufferevent_get_input(remote_bev);
-  // dst = bufferevent_get_output(local_bev);
-  // evbuffer_add_buffer(dst, src);
   return;
 error:
   bufferevent_clear_free(local_bev);
   bufferevent_clear_free(remote_bev);
 }
 
-// void local_writecb(bufferevent *bev, void *arg) {}
-
 void local_readcb(bufferevent *bev, void *arg) {
   log_t("read from local");
   Client *client = (Client *)arg;
   check(client, "null context");
   bufferevent *remote_bev = client->remote_bev;
-  // SecureSocket *ss = client->ss;
 
   // encode data then write to remote
   check(encode_copy(ss, remote_bev, bev) != -1, "close all connection");
-
-  // byte buf[BUFFER_SIZE] = {0};
-  // int n = bufferevent_read(bev, buf, BUFFER_SIZE);
-  // check(n > 0, "no more data");
-  // // check((int)buf[0] == 5, "socks5 only!"); // check SOCKS5
-  // log_d("socks5: VER: %d, NMETHODS: %d", buf[0], buf[1]);
-  // encode_data(buf, n, ss->password);
-  // log_d("read %d bytes from local", n);
-  // n = bufferevent_write(remote_bev, buf, n);
-  // check(n > 0, "no more data");
-  //
-  // todo fixme
-  // struct evbuffer *src, *dst;
-  // src = bufferevent_get_input(bev);
-  // dst = bufferevent_get_output(remote_bev);
-  // int rc = evbuffer_add_buffer(dst, src);
-  // check(rc != -1, "error add buffer");
   return;
 error:
   bufferevent_clear_free(bev);
@@ -109,10 +76,6 @@ void local_eventcb(bufferevent *bev, short events, void *arg) {
       }
     }
     if (events & BEV_EVENT_EOF) {
-      // bufferevent_free(bev);
-      // bufferevent_free(client->remote_bev);
-      // securesocket_free(client->ss);
-      // free(client); // free client
       log_d("connection %d closed", bufferevent_getfd(bev));
     } else if (events & BEV_EVENT_ERROR) {
       log_e("got an error on the connection");
@@ -192,6 +155,7 @@ int main() {
   // todo read password form json
   // ss->password = rand_password();
   Password *tmp_password = calloc(1, sizeof(Password));
+  // temp password for test
   byte table[] = {
       162, 135, 28,  12,  149, 252, 19,  6,   147, 47,  146, 53,  37,  143, 65,
       226, 77,  92,  115, 157, 151, 79,  26,  16,  89,  36,  82,  41,  153, 129,

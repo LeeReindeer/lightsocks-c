@@ -1,3 +1,7 @@
 *.o
 *.out
-
+cmake-build-debug/
+.idea/
+.vscode/
+CMake*
+bin/

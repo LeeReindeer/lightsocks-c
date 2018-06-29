@@ -20,7 +20,7 @@
 int decode_read(SecureSocket *ss, bufferevent *bufev, byte bytes[],
                 size_t size) {
   int n = bufferevent_read(bufev, bytes, BUFFER_SIZE);
-  check(n > 0, "read error: %d", n);
+  // check(n > 0, "read error: %d", n);
   decode_data(bytes, n, ss->password);
 
 error: // fallthrogh
@@ -30,27 +30,51 @@ error: // fallthrogh
 int encode_write(SecureSocket *ss, bufferevent *bufev, byte bytes[],
                  size_t size) {
   encode_data(bytes, size, ss->password);
-  int n = bufferevent_write(bufev, bytes, BUFFER_SIZE);
-  check(n > 0, "write error: %d", n);
+  int n = bufferevent_write(bufev, bytes, size);
+  // check(n > 0, "write error: %d", n);
 
 error:
   return n;
 }
 
-void decode_copy(SecureSocket *ss, bufferevent *dst, bufferevent *src) {
-  byte buf[BUFFER_SIZE] = {0};
-  int n;
-  while ((n = decode_read(ss, src, buf, BUFFER_SIZE)) > 0) {
+int decode_copy(SecureSocket *ss, bufferevent *dst, bufferevent *src) {
+  size_t n = 0;
+  int first_time = 1;
+  while (1) {
+    byte buf[BUFFER_SIZE] = {0};
+    n = decode_read(ss, src, buf, BUFFER_SIZE);
+    if (n <= 0) {
+      log_t("no more data");
+      if (first_time) {
+        // close all
+        return -1;
+      }
+      break;
+    }
+    first_time = 0;
     bufferevent_write(dst, buf, n);
   }
+  return 0;
 }
 
-void encode_copy(SecureSocket *ss, bufferevent *dst, bufferevent *src) {
-  byte buf[BUFFER_SIZE] = {0};
-  int n;
-  while ((n = bufferevent_read(src, buf, BUFFER_SIZE)) > 0) {
+int encode_copy(SecureSocket *ss, bufferevent *dst, bufferevent *src) {
+  size_t n = 0;
+  int first_time = 1;
+  while (1) {
+    byte buf[BUFFER_SIZE] = {0};
+    n = bufferevent_read(src, buf, BUFFER_SIZE);
+    if (n <= 0) {
+      log_t("no more data");
+      if (first_time) {
+        // close all
+        return -1;
+      }
+      break;
+    }
+    first_time = 0;
     encode_write(ss, dst, buf, n); // write encode data
   }
+  return 0;
 }
 
 void securesocket_free(SecureSocket *ss) {

@@ -40,17 +40,17 @@ int encode_write(SecureSocket *ss, bufferevent *bufev, byte bytes[],
  * @brief  Read encoded data from src, then write decoded to dst.
  * @param  *dst:
  * @param  *src:
- * @retval None
+ * @retval -1 if there is no data to read
  */
-void decode_copy(SecureSocket *ss, bufferevent *dst, bufferevent *src);
+int decode_copy(SecureSocket *ss, bufferevent *dst, bufferevent *src);
 
 /**
  * @brief  Read data from src, encode it and write into dst
  * @param  *dst:
  * @param  *src:
- * @retval None
+ * @retval -1 if there is no data to read
  */
-void encode_copy(SecureSocket *ss, bufferevent *dst, bufferevent *src);
+int encode_copy(SecureSocket *ss, bufferevent *dst, bufferevent *src);
 
 void securesocket_free(SecureSocket *ss);
 

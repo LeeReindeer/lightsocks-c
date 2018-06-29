@@ -190,7 +190,7 @@ int main() {
   remote.sin_family = AF_INET;
   remote.sin_port = htons(42619);
   // todo read from json
-  remote.sin_addr.s_addr = inet_addr("167.99.66.41");
+  remote.sin_addr.s_addr = inet_addr("1.2.3.4");
   ss->remote_addr = &remote;
 
   event *signal_event;

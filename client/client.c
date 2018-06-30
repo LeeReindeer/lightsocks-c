@@ -32,11 +32,6 @@ typedef struct {
 static event_base *base;
 static SecureSocket *ss;
 
-static void bufferevent_clear_free(bufferevent *bev) {
-  bufferevent_setcb(bev, NULL, NULL, NULL, NULL);
-  bufferevent_free(bev);
-}
-
 void remote_readcb(bufferevent *remote_bev, void *arg) {
   log_t("read from remote");
   Client *client = (Client *)arg;
@@ -180,6 +175,7 @@ int main() {
   }
   ss->password = tmp_password;
   sockaddr_in local; // listen to local
+  memset(&local, 0, sizeof(sockaddr_in));
   local.sin_family = AF_INET;
   int local_port = 7448;
   local.sin_port = htons(local_port);
@@ -187,6 +183,7 @@ int main() {
   ss->local_addr = &local;
 
   sockaddr_in remote; // connect to remote
+  memset(&remote, 0, sizeof(sockaddr_in));
   remote.sin_family = AF_INET;
   remote.sin_port = htons(42619);
   // todo read from json

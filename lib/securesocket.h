@@ -26,15 +26,13 @@ typedef struct {
  * @param  bytes[]:
  * @retval n bytes read
  */
-int decode_read(SecureSocket *ss, bufferevent *bufev, byte bytes[],
-                size_t size);
+int decode_read(Password *pass, bufferevent *bufev, byte bytes[], size_t size);
 
 /**
  * @brief Encode data in bytes, then write to bufev
  * @retval n bytes writed
  */
-int encode_write(SecureSocket *ss, bufferevent *bufev, byte bytes[],
-                 size_t size);
+int encode_write(Password *pass, bufferevent *bufev, byte bytes[], size_t size);
 
 /**
  * @brief  Read encoded data from src, then write decoded to dst.
@@ -44,6 +42,8 @@ int encode_write(SecureSocket *ss, bufferevent *bufev, byte bytes[],
  */
 int decode_copy(SecureSocket *ss, bufferevent *dst, bufferevent *src);
 
+int decode_copy_pass(Password *pass, bufferevent *dst, bufferevent *src);
+
 /**
  * @brief  Read data from src, encode it and write into dst
  * @param  *dst:
@@ -51,6 +51,13 @@ int decode_copy(SecureSocket *ss, bufferevent *dst, bufferevent *src);
  * @retval -1 if there is no data to read
  */
 int encode_copy(SecureSocket *ss, bufferevent *dst, bufferevent *src);
+
+int encode_copy_pass(Password *pass, bufferevent *dst, bufferevent *src);
+
+/**
+ * @brief  CLear buffferevent callback adn free it.
+ */
+void bufferevent_clear_free(bufferevent *bev);
 
 void securesocket_free(SecureSocket *ss);
 

@@ -13,3 +13,5 @@
 - [b64.c](https://github.com/littlstar/b64.c)
 
 - [log.c](https://github.com/rxi/log.c)
+
+- [parson](https://github.com/kgabis/parson)

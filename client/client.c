@@ -5,6 +5,7 @@
 #include "../lib/log.h"
 #include "../lib/password.h"
 #include "../lib/securesocket.h"
+#include "../lib/util.h"
 
 #include <event2/buffer.h>
 #include <event2/bufferevent.h>
@@ -29,8 +30,8 @@ typedef struct {
   bufferevent *local_bev;
 } Client;
 
-static event_base *base;
-static SecureSocket *ss;
+static event_base *base = NULL;
+static SecureSocket *ss = NULL;
 
 void remote_readcb(bufferevent *remote_bev, void *arg) {
   log_t("read from remote");
@@ -146,38 +147,35 @@ int main() {
   log_set_level(LOG_DEBUG);
   log_d("lightsocks-local: starting...");
   ss = calloc(1, sizeof(SecureSocket));
+  event *signal_event = NULL;
+  evconnlistener *listener = NULL;
 
-  // todo read password form json
-  // ss->password = rand_password();
-  Password *tmp_password = calloc(1, sizeof(Password));
-  // temp password for test
-  byte table[] = {
-      162, 135, 28,  12,  149, 252, 19,  6,   147, 47,  146, 53,  37,  143, 65,
-      226, 77,  92,  115, 157, 151, 79,  26,  16,  89,  36,  82,  41,  153, 129,
-      184, 23,  203, 160, 110, 250, 170, 42,  124, 182, 117, 233, 125, 5,   94,
-      176, 249, 91,  59,  136, 76,  199, 205, 139, 108, 225, 43,  243, 140, 152,
-      116, 171, 103, 48,  188, 17,  49,  27,  228, 102, 158, 50,  90,  3,   232,
-      224, 173, 60,  132, 213, 45,  98,  118, 254, 211, 210, 128, 207, 175, 201,
-      163, 206, 55,  161, 165, 0,   126, 154, 97,  198, 1,   183, 181, 239, 222,
-      167, 39,  15,  58,  51,  236, 195, 96,  245, 131, 85,  9,   127, 142, 8,
-      84,  185, 134, 166, 174, 218, 114, 155, 46,  7,   21,  104, 69,  194, 248,
-      137, 99,  159, 10,  62,  172, 169, 138, 71,  220, 193, 216, 208, 179, 241,
-      235, 130, 189, 180, 88,  64,  31,  24,  75,  192, 133, 123, 70,  255, 63,
-      144, 231, 197, 87,  78,  18,  240, 119, 164, 145, 106, 190, 52,  80,  20,
-      227, 196, 223, 202, 242, 244, 95,  22,  14,  230, 25,  74,  122, 4,   200,
-      215, 38,  221, 204, 86,  105, 68,  238, 247, 214, 177, 2,   212, 66,  148,
-      111, 187, 35,  109, 61,  168, 32,  30,  56,  178, 40,  112, 34,  209, 93,
-      67,  251, 217, 237, 107, 73,  113, 83,  234, 29,  253, 191, 72,  186, 120,
-      33,  13,  229, 44,  150, 219, 57,  121, 81,  141, 11,  156, 54,  100, 101,
-      246};
-  for (int i = 0; i < PASS_LENGTH; i++) {
-    tmp_password->x[i] = table[i];
-  }
-  ss->password = tmp_password;
+  int local_port, server_port;
+  const char *server_addr = NULL;
+  const char *password_str = NULL;
+
+  JSON_Value *schema =
+      json_parse_string("{\"local_port\":0,\"server_addr\":\"\",\"server_"
+                        "port\":0,\"password\":\"\"}");
+  // char *home = calloc(1, 256);
+  // char *config_file = strcat(get_home_dir(&home),
+  // "/.lightsocks-config.json"); log_d("reading config file: %s", config_file);
+
+  JSON_Value *data = json_parse_file("/home/leer/.lightsocks-config.json");
+  check(data, "null json");
+  check(json_validate(schema, data) == JSONSuccess, "schema not match");
+
+  local_port = json_object_get_number((json_object(data)), "local_port");
+  server_addr = json_object_get_string((json_object(data)), "server_addr");
+  server_port = json_object_get_number(json_object(data), "server_port");
+  password_str = json_object_get_string((json_object(data)), "password");
+
+  Password *password =
+      gen_password_by_string(password_str, strlen(password_str));
+  ss->password = password;
   sockaddr_in local; // listen to local
   memset(&local, 0, sizeof(sockaddr_in));
   local.sin_family = AF_INET;
-  int local_port = 7448;
   local.sin_port = htons(local_port);
   local.sin_addr.s_addr = htonl(INADDR_ANY);
   ss->local_addr = &local;
@@ -185,33 +183,57 @@ int main() {
   sockaddr_in remote; // connect to remote
   memset(&remote, 0, sizeof(sockaddr_in));
   remote.sin_family = AF_INET;
-  remote.sin_port = htons(42619);
-  // todo read from json
-  remote.sin_addr.s_addr = inet_addr("1.2.3.4");
+  remote.sin_port = htons(server_port);
+  remote.sin_addr.s_addr = inet_addr(server_addr);
   ss->remote_addr = &remote;
 
-  event *signal_event;
-  evconnlistener *listener;
-
   base = event_base_new();
+  check(base, "event base error");
   listener = evconnlistener_new_bind(
       base, local_listener_cb, ss, LEV_OPT_CLOSE_ON_FREE | LEV_OPT_REUSEABLE,
       16, (struct sockaddr *)ss->local_addr, sizeof(local));
   evconnlistener_set_error_cb(listener, listener_errorcb);
+  check(listener, "listen error");
 
-  log_d("\nListen on [::]:%d\nRemote:[167.99.66.41]:42619\nPassword:\n%s",
-        local_port, password_string(tmp_password, NULL));
+  log_d("\nListen on [::]:%d\nRemote:%s:%d\nPassword:\n%s", local_port,
+        server_addr, server_port, password_string(password, NULL));
 
+  // now there's no reason to keep json string
+  json_value_free(schema);
+  json_value_free(data);
   // add Ctrl-C signal event
   signal_event = evsignal_new(base, SIGINT, signal_cb, base);
-  event_add(signal_event, NULL);
+  check(signal_event && event_add(signal_event, NULL) == 0,
+        "signal even error");
 
   event_base_dispatch(base);
-  log_w("lightsocks-loacl: exit");
 
   securesocket_free(ss);
+  if (listener) {
+    evconnlistener_free(listener);
+  }
+  if (signal_event) {
+    event_free(signal_event);
+  }
   event_base_free(base);
-  evconnlistener_free(listener);
-  event_free(signal_event);
+  log_w("lightsocks-loacl: exit(0)");
   return 0;
+
+error: // fallthrough
+  log_w("lightsocks-loacl: exit(1)");
+  if (schema) {
+    json_value_free(schema);
+  }
+  if (data) {
+    json_value_free(data);
+  }
+  securesocket_free(ss);
+  if (listener) {
+    evconnlistener_free(listener);
+  }
+  if (signal_event) {
+    event_free(signal_event);
+  }
+  event_base_free(base);
+  return -1;
 }

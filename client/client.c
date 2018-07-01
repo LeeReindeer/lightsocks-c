@@ -143,8 +143,9 @@ void signal_cb(evutil_socket_t sig, short events, void *user_data) {
 }
 
 // temp
-int main() {
+int main(int argc, const char *argv[]) {
   log_set_level(LOG_DEBUG);
+  check(argc == 1 || argc == 2, "number of args error, required 0 or 1 arg");
   log_d("lightsocks-local: starting...");
   ss = calloc(1, sizeof(SecureSocket));
   event *signal_event = NULL;
@@ -161,7 +162,9 @@ int main() {
   // char *config_file = strcat(get_home_dir(&home),
   // "/.lightsocks-config.json"); log_d("reading config file: %s", config_file);
 
-  JSON_Value *data = json_parse_file("/home/leer/.lightsocks-config.json");
+  JSON_Value *data = NULL;
+  data = (argc == 1) ? json_parse_file(".lightsocks-config.json")
+                     : json_parse_file(argv[1]);
   check(data, "null json");
   check(json_validate(schema, data) == JSONSuccess, "schema not match");
 

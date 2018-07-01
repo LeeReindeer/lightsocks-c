@@ -22,8 +22,6 @@ typedef struct {
 /**
  * @brief  Read encoded data from buffevent,
  * and write decode data to bytes
- * @param  *bufev:
- * @param  bytes[]:
  * @retval n bytes read
  */
 int decode_read(Password *pass, bufferevent *bufev, byte bytes[], size_t size);
@@ -36,8 +34,8 @@ int encode_write(Password *pass, bufferevent *bufev, byte bytes[], size_t size);
 
 /**
  * @brief  Read encoded data from src, then write decoded to dst.
- * @param  *dst:
- * @param  *src:
+ * @param  *dst: dst bufferevent to write
+ * @param  *src: read from src
  * @retval -1 if there is no data to read
  */
 int decode_copy(SecureSocket *ss, bufferevent *dst, bufferevent *src);
@@ -46,8 +44,8 @@ int decode_copy_pass(Password *pass, bufferevent *dst, bufferevent *src);
 
 /**
  * @brief  Read data from src, encode it and write into dst
- * @param  *dst:
- * @param  *src:
+ * @param  *dst: dst bufferevent to write
+ * @param  *src: read from src
  * @retval -1 if there is no data to read
  */
 int encode_copy(SecureSocket *ss, bufferevent *dst, bufferevent *src);

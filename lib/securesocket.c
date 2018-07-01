@@ -19,7 +19,7 @@
 
 int decode_read(Password *password, bufferevent *bufev, byte bytes[],
                 size_t size) {
-  int n = bufferevent_read(bufev, bytes, BUFFER_SIZE);
+  int n = bufferevent_read(bufev, bytes, size);
   // check(n > 0, "read error: %d", n);
   decode_data(bytes, n, password);
 
@@ -43,6 +43,7 @@ int decode_copy_pass(Password *pass, bufferevent *dst, bufferevent *src) {
   while (1) {
     byte buf[BUFFER_SIZE] = {0};
     n = decode_read(pass, src, buf, BUFFER_SIZE);
+    log_t("read %d bytes", n);
     if (n <= 0) {
       log_t("no more data");
       if (first_time) {
@@ -52,7 +53,8 @@ int decode_copy_pass(Password *pass, bufferevent *dst, bufferevent *src) {
       break;
     }
     first_time = 0;
-    bufferevent_write(dst, buf, n);
+    n = bufferevent_write(dst, buf, n);
+    log_t("write %d bytes", n);
   }
   return 0;
 }
@@ -70,6 +72,7 @@ int encode_copy_pass(Password *pass, bufferevent *dst, bufferevent *src) {
   while (1) {
     byte buf[BUFFER_SIZE] = {0};
     n = bufferevent_read(src, buf, BUFFER_SIZE);
+    log_t("read %d bytes", n);
     if (n <= 0) {
       log_t("no more data");
       if (first_time) {
@@ -79,7 +82,8 @@ int encode_copy_pass(Password *pass, bufferevent *dst, bufferevent *src) {
       break;
     }
     first_time = 0;
-    encode_write(pass, dst, buf, n); // write encode data
+    n = encode_write(pass, dst, buf, n); // write encode data
+    log_t("write %d bytes", n);
   }
   return 0;
 }
@@ -97,6 +101,8 @@ void bufferevent_clear_free(bufferevent *bev) {
 }
 
 void securesocket_free(SecureSocket *ss) {
-  free(ss->password);
+  if (ss->password) {
+    free(ss->password);
+  }
   free(ss);
 }

@@ -10,12 +10,13 @@ $(shell mkdir -p $(BINDIR))
 
 all: lib lightclient lightserver
 
-lib: base64 log password securesocket
+lib: base64 log password securesocket parson util
 
 lightclient:
-		gcc -o $(BINDIR)/client $(CLIENTDIR)/client.c $(BINDIR)/base64.o $(BINDIR)/log.o $(BINDIR)/password.o $(BINDIR)/securesocket.o $(EVENTLIB)
+		gcc -o $(BINDIR)/client $(CLIENTDIR)/client.c $(BINDIR)/base64.o $(BINDIR)/log.o $(BINDIR)/password.o $(BINDIR)/securesocket.o $(BINDIR)/parson.o $(BINDIR)/util.o $(EVENTLIB)
 
 lightserver:
+		gcc -o $(BINDIR)/server $(SERVERDIR)/server.c $(BINDIR)/base64.o $(BINDIR)/log.o $(BINDIR)/password.o $(BINDIR)/securesocket.o $(BINDIR)/parson.o $(BINDIR)/util.o $(EVENTLIB)
 
 # libs
 base64:
@@ -29,3 +30,9 @@ password:
 
 securesocket:
 		gcc -c $(LIB)/securesocket.c -o $(BINDIR)/securesocket.o
+
+parson:
+		gcc -c $(LIB)/parson.c -o $(BINDIR)/parson.o
+
+util:
+		gcc -c $(LIB)/util.c -o $(BINDIR)/util.o

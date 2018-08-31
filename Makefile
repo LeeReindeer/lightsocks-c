@@ -36,3 +36,6 @@ parson:
 
 util:
 		gcc -c $(LIB)/util.c -o $(BINDIR)/util.o
+
+clear:
+		rm -rf bin

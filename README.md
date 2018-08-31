@@ -4,6 +4,18 @@
 >
 > Under developing.And Lightsocks-server does not work now.
 
+## Build
+
+```shell
+make all
+```
+
+## Usage
+
+``` shell
+./bin/client <your config json path>
+```
+
 ## Thanks
 
 - [lightsocks-go](https://github.com/gwuhaolin/lightsocks)

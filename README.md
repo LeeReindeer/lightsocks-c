@@ -20,11 +20,6 @@ make all
 
 ## Thanks
 
-- [lightsocks-c](#lightsocks-c)
-  - [Build](#build)
-  - [Usage](#usage)
-  - [Thanks](#thanks)
-
 - [libevent](http://libevent.org/)
 
 - [b64.c](https://github.com/littlstar/b64.c)

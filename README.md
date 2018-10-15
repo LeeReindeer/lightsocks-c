@@ -5,6 +5,8 @@
 > Under developing.And Lightsocks-server does not work now.
 
 ## Build
+ 
+**required libevent installed.**
 
 ```shell
 make all

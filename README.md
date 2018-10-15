@@ -1,8 +1,8 @@
 # lightsocks-c
 
 > A tiny SOCKS5 proxy which is inspired by [lightsocks-go](https://github.com/gwuhaolin/lightsocks) and uses [libevent](http://libevent.org/).
->
-> Under developing.And Lightsocks-server does not work now.
+> 
+> **WARNING: Lightsocks-server does not work now.**
 
 ## Build
  
@@ -20,7 +20,10 @@ make all
 
 ## Thanks
 
-- [lightsocks-go](https://github.com/gwuhaolin/lightsocks)
+- [lightsocks-c](#lightsocks-c)
+  - [Build](#build)
+  - [Usage](#usage)
+  - [Thanks](#thanks)
 
 - [libevent](http://libevent.org/)
 

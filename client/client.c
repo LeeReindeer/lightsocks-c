@@ -142,7 +142,7 @@ void signal_cb(evutil_socket_t sig, short events, void *user_data) {
   event_base_loopexit(base, &delay);
 }
 
-// temp
+// todo this is stupid..
 int main(int argc, const char *argv[]) {
   log_set_level(LOG_DEBUG);
   check(argc == 1 || argc == 2, "number of args error, required 0 or 1 arg");
@@ -158,9 +158,6 @@ int main(int argc, const char *argv[]) {
   JSON_Value *schema =
       json_parse_string("{\"local_port\":0,\"server_addr\":\"\",\"server_"
                         "port\":0,\"password\":\"\"}");
-  // char *home = calloc(1, 256);
-  // char *config_file = strcat(get_home_dir(&home),
-  // "/.lightsocks-config.json"); log_d("reading config file: %s", config_file);
 
   JSON_Value *data = NULL;
   data = (argc == 1) ? json_parse_file(".lightsocks-config.json")

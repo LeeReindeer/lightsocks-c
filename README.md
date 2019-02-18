@@ -1,4 +1,4 @@
-# lightsocks-c
+# lightsocks-c (WIP)
 
 > A tiny SOCKS5 proxy which is inspired by [lightsocks-go](https://github.com/gwuhaolin/lightsocks) and uses [libevent](http://libevent.org/).
 > 

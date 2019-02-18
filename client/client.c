@@ -3,9 +3,9 @@
  **/
 #include "client.h"
 #include "../lib/log.h"
+#include "../lib/parson.h"
 #include "../lib/password.h"
 #include "../lib/securesocket.h"
-#include "../lib/util.h"
 
 #include <event2/buffer.h>
 #include <event2/bufferevent.h>
@@ -65,7 +65,7 @@ void local_eventcb(bufferevent *bev, short events, void *arg) {
     // event_base *base = arg;
     Client *client = (Client *)arg;
     if (bev) {
-      bufferevent_clear_free(bev); // client->local_bev
+      bufferevent_clear_free(bev);  // client->local_bev
       bufferevent_clear_free(client->remote_bev);
       if (client) {
         free(client);
@@ -136,8 +136,9 @@ void signal_cb(evutil_socket_t sig, short events, void *user_data) {
   event_base *base = user_data;
   struct timeval delay = {1, 0};
 
-  log_d("caught an interrupt signal; exiting cleanly in one "
-        "seconds");
+  log_d(
+      "caught an interrupt signal; exiting cleanly in one "
+      "seconds");
 
   event_base_loopexit(base, &delay);
 }
@@ -155,9 +156,9 @@ int main(int argc, const char *argv[]) {
   const char *server_addr = NULL;
   const char *password_str = NULL;
 
-  JSON_Value *schema =
-      json_parse_string("{\"local_port\":0,\"server_addr\":\"\",\"server_"
-                        "port\":0,\"password\":\"\"}");
+  JSON_Value *schema = json_parse_string(
+      "{\"local_port\":0,\"server_addr\":\"\",\"server_"
+      "port\":0,\"password\":\"\"}");
 
   JSON_Value *data = NULL;
   data = (argc == 1) ? json_parse_file(".lightsocks-config.json")
@@ -173,14 +174,14 @@ int main(int argc, const char *argv[]) {
   Password *password =
       gen_password_by_string(password_str, strlen(password_str));
   ss->password = password;
-  sockaddr_in local; // listen to local
+  sockaddr_in local;  // listen to local
   memset(&local, 0, sizeof(sockaddr_in));
   local.sin_family = AF_INET;
   local.sin_port = htons(local_port);
   local.sin_addr.s_addr = htonl(INADDR_ANY);
   ss->local_addr = &local;
 
-  sockaddr_in remote; // connect to remote
+  sockaddr_in remote;  // connect to remote
   memset(&remote, 0, sizeof(sockaddr_in));
   remote.sin_family = AF_INET;
   remote.sin_port = htons(server_port);
@@ -219,7 +220,7 @@ int main(int argc, const char *argv[]) {
   log_w("lightsocks-loacl: exit(0)");
   return 0;
 
-error: // fallthrough
+error:  // fallthrough
   log_w("lightsocks-loacl: exit(1)");
   if (schema) {
     json_value_free(schema);
